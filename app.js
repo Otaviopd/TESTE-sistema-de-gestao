@@ -635,10 +635,32 @@ async function _addImagemFixaResumo(workbook, wsResumo, file){
     editAs: 'absolute'
   });
 }
+// === Carrega ExcelJS e FileSaver sob demanda ===
+window.ensureExcelLibs = window.ensureExcelLibs || (async function ensureExcelLibs(){
+  const load = (src) => new Promise((resolve,reject)=>{
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+
+  if (typeof ExcelJS === 'undefined') {
+    try { await load('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'); }
+    catch { await load('https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'); }
+  }
+  if (typeof saveAs === 'undefined') {
+    try { await load('https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js'); }
+    catch { await load('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js'); }
+  }
+});
+
 
 async function exportarPlanilhaXLSX(){
   try{
-    if(typeof ExcelJS === 'undefined'){ alert('ExcelJS não carregado. Confira sua conexão.'); return; }
+if (typeof ExcelJS === 'undefined' || typeof saveAs === 'undefined') {
+  await ensureExcelLibs();
+}
+
     const wb = new ExcelJS.Workbook();
     wb.created = new Date();
     wb.properties = { title:'Clube Pet - Dados', subject:'Export', creator:'Clube Pet' };
